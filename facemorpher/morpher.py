@@ -106,13 +106,16 @@ def morph(src_img, src_points, dest_img, dest_points,
     end_face = warper.warp_image(dest_img, dest_points, points, size)
     average_face = blender.weighted_average(src_face, end_face, percent)
 
-    if background in ('transparent', 'average'):
+    if background in ('transparent', 'average') or type(background) == int:
       mask = blender.mask_from_points(average_face.shape[:2], points)
       average_face = np.dstack((average_face, mask))
 
       if background == 'average':
         average_background = blender.weighted_average(src_img, dest_img, percent)
         average_face = blender.overlay_image(average_face, mask, average_background)
+
+      if type(background) == int and background < 2:
+        dest_img = blender.overlay_image(dest_img, mask, src_img if background == 0 else dest_img)
 
     plt.plot_one(average_face)
     plt.save(average_face)
