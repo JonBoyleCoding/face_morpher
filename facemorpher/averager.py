@@ -69,6 +69,10 @@ def averager(imgpaths, dest_filename=None, width=500, height=600, background='bl
       images.append(img)
       point_set.append(points)
 
+  if type(background) == int:
+    if background >= len(imgpaths):
+      raise Exception('Background number is larger than number of provided images')
+
   if len(images) == 0:
     raise FileNotFoundError('Could not find any valid images.' +
                             ' Supported formats are .jpg, .png, .jpeg')
@@ -79,7 +83,11 @@ def averager(imgpaths, dest_filename=None, width=500, height=600, background='bl
       raise Exception('No face or detected face points in dest img: ' + dest_filename)
   else:
     dest_img = np.zeros(images[0].shape, np.uint8)
-    dest_points = locator.average_points(point_set)
+
+    if type(background) != int:
+      dest_points = locator.average_points(point_set)
+    else:
+      dest_points = point_set[background]
 
   num_images = len(images)
   result_images = np.zeros(images[0].shape, np.float32)
@@ -104,7 +112,7 @@ def averager(imgpaths, dest_filename=None, width=500, height=600, background='bl
       dest_img = blender.overlay_image(dest_img, mask, average_background)
       dest_img = dest_img.astype(np.uint8)
 
-    if type(background) == int and background < len(images):
+    if type(background) == int:
       dest_img = blender.overlay_image(dest_img, mask, images[background])
 
   print('Averaged {} images'.format(num_images))
