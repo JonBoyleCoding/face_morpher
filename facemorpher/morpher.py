@@ -113,6 +113,7 @@ def morph(src_img, src_points, dest_img, dest_points,
       if background == 'average':
         average_background = blender.weighted_average(src_img, dest_img, percent)
         average_face = blender.overlay_image(average_face, mask, average_background)
+        average_face = average_face.astype(np.uint8)
 
       if type(background) == int and background < 2:
         dest_img = blender.overlay_image(dest_img, mask, src_img if background == 0 else dest_img)
