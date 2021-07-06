@@ -105,15 +105,18 @@ def averager(imgpaths, dest_filename=None, width=500, height=600, background='bl
     mask = cv2.blur(mask, (blur_radius, blur_radius))
 
   if background in ('transparent', 'average') or type(background) == int:
-    dest_img = np.dstack((dest_img, mask))
+    masked_dest_img = np.dstack((dest_img, mask))
 
     if background == 'average':
       average_background = locator.average_points(images)
-      dest_img = blender.overlay_image(dest_img, mask, average_background)
+      dest_img = blender.overlay_image(masked_dest_img, mask, average_background)
       dest_img = dest_img.astype(np.uint8)
 
-    if type(background) == int:
-      dest_img = blender.overlay_image(dest_img, mask, images[background])
+    elif type(background) == int:
+      dest_img = cv2.seamlessClone(dest_img, images[background], mask, (int(images[background].shape[1] / 2), int(images[background].shape[0]/2)), cv2.MIXED_CLONE)
+      #blender.overlay_image(dest_img, mask, images[background])
+    else:
+      dest_img = masked_dest_img
 
   print('Averaged {} images'.format(num_images))
   plt = plotter.Plotter(plot, num_images=1, out_filename=out_filename)
