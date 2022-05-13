@@ -77,6 +77,9 @@ def averager(imgpaths, dest_filename=None, width=500, height=600, background='bl
     raise FileNotFoundError('Could not find any valid images.' +
                             ' Supported formats are .jpg, .png, .jpeg')
 
+  if len(imgpaths) != len(images):
+    raise Exception('Unable to detect faces in some of the images')
+
   if dest_filename is not None:
     dest_img, dest_points = load_image_points(dest_filename, size)
     if dest_img is None or dest_points is None:
@@ -113,16 +116,19 @@ def averager(imgpaths, dest_filename=None, width=500, height=600, background='bl
       dest_img = dest_img.astype(np.uint8)
 
     elif type(background) == int:
-      dest_img = cv2.seamlessClone(dest_img, images[background], mask, (int(images[background].shape[1] / 2), int(images[background].shape[0]/2)), cv2.MIXED_CLONE)
+      bg_clone = np.copy(images[background])
+      morph_pre_clone = blender.overlay_image(masked_dest_img, mask, bg_clone)
+      dest_img = cv2.seamlessClone(morph_pre_clone, images[background], mask, (int(images[background].shape[1] / 2), int(images[background].shape[0]/2)), cv2.MIXED_CLONE)
       #blender.overlay_image(dest_img, mask, images[background])
     else:
       dest_img = masked_dest_img
 
-  print('Averaged {} images'.format(num_images))
-  plt = plotter.Plotter(plot, num_images=1, out_filename=out_filename)
-  plt.save(dest_img)
-  plt.plot_one(dest_img)
-  plt.show()
+  cv2.imwrite(out_filename, dest_img)
+  #print('Averaged {} images'.format(num_images))
+  #plt = plotter.Plotter(plot, num_images=1, out_filename=out_filename)
+  #plt.save(dest_img)
+  #plt.plot_one(dest_img)
+  #plt.show()
 
 def main():
   args = docopt(__doc__, version='Face Averager 1.0')
